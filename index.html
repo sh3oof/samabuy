@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SamaBuy — Trusted Sharia Station</title>
+  <meta name="description" content="SamaBuy is the UAE's first Sharia-compliant crypto platform. Buy, sell and transfer digital assets the halal way. Coming soon."/>
+  <meta property="og:title" content="SamaBuy — Trusted Sharia Station"/>
+  <meta property="og:description" content="The UAE's first halal crypto brokerage. Powered by MoonPay. Coming soon."/>
+  <meta property="og:url" content="https://samabuy.com"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #060C08;
+      --surface:  #0A1410;
+      --card:     #0E1A13;
+      --border:   rgba(201,168,76,0.15);
+      --emerald:  #1A8A52;
+      --emerald2: #22A862;
+      --gold:     #C9A84C;
+      --gold2:    #E2C06A;
+      --text:     #EDF2EE;
+      --muted:    #7A9482;
+      --dim:      rgba(255,255,255,0.04);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ── Custom cursor ────────────────────────────────────────── */
+    .cursor {
+      position: fixed; top: 0; left: 0; pointer-events: none;
+      z-index: 9999; mix-blend-mode: difference;
+      transition: transform 0.15s ease;
+    }
+    .cursor-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--gold); transform: translate(-50%,-50%);
+    }
+    .cursor-ring {
+      position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9998;
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1px solid rgba(201,168,76,0.5);
+      transform: translate(-50%,-50%);
+      transition: transform 0.35s cubic-bezier(.25,.46,.45,.94), width 0.2s, height 0.2s, opacity 0.2s;
+    }
+
+    /* ── Background canvas ────────────────────────────────────── */
+    #bg-canvas {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.55;
+    }
+
+    /* ── Geometric SVG pattern overlay ───────────────────────── */
+    .geo-overlay {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cpolygon points='40,3 77,21 77,59 40,77 3,59 3,21' fill='none' stroke='%23C9A84C' stroke-width='0.6'/%3E%3Cpolygon points='40,16 64,28 64,52 40,64 16,52 16,28' fill='none' stroke='%231A8A52' stroke-width='0.4'/%3E%3Ccircle cx='40' cy='40' r='4' fill='none' stroke='%23C9A84C' stroke-width='0.4'/%3E%3Cline x1='40' y1='3' x2='40' y2='16' stroke='%23C9A84C' stroke-width='0.3'/%3E%3Cline x1='77' y1='21' x2='64' y2='28' stroke='%23C9A84C' stroke-width='0.3'/%3E%3Cline x1='77' y1='59' x2='64' y2='52' stroke='%23C9A84C' stroke-width='0.3'/%3E%3Cline x1='40' y1='77' x2='40' y2='64' stroke='%23C9A84C' stroke-width='0.3'/%3E%3Cline x1='3' y1='59' x2='16' y2='52' stroke='%23C9A84C' stroke-width='0.3'/%3E%3Cline x1='3' y1='21' x2='16' y2='28' stroke='%23C9A84C' stroke-width='0.3'/%3E%3C/svg%3E");
+    }
+
+    /* ── Layout ───────────────────────────────────────────────── */
+    .wrapper {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+
+    /* ── Nav ──────────────────────────────────────────────────── */
+    nav {
+      padding: 28px 48px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border);
+      animation: fadeDown 0.8s ease both;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo-mark {
+      width: 42px; height: 42px; border-radius: 13px;
+      background: linear-gradient(135deg, var(--emerald), var(--emerald2) 50%, var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Noto Naskh Arabic', serif;
+      font-size: 20px; color: #fff; font-weight: 700;
+      box-shadow: 0 0 28px rgba(26,138,82,0.45);
+      position: relative; overflow: hidden;
+    }
+    .logo-mark::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+    }
+    .logo-text-block { display: flex; flex-direction: column; }
+    .logo-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 700; color: var(--text);
+      letter-spacing: 0.02em; line-height: 1;
+    }
+    .logo-slogan {
+      font-size: 9px; font-weight: 500; color: var(--gold);
+      letter-spacing: 0.18em; text-transform: uppercase; margin-top: 2px;
+    }
+    .nav-badge {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 14px; border-radius: 100px;
+      background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.22);
+      font-size: 12px; color: var(--gold); font-weight: 500;
+    }
+    .nav-badge span { font-size: 14px; }
+
+    /* ── Hero ─────────────────────────────────────────────────── */
+    .hero {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 80px 24px 60px;
+      position: relative;
+    }
+
+    /* Glow orbs */
+    .orb {
+      position: absolute; border-radius: 50%; pointer-events: none; filter: blur(80px);
+    }
+    .orb-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(26,138,82,0.18), transparent 70%);
+      top: -100px; left: 50%; transform: translateX(-50%);
+      animation: pulse-orb 6s ease-in-out infinite;
+    }
+    .orb-2 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(201,168,76,0.12), transparent 70%);
+      bottom: 0; right: 10%;
+      animation: pulse-orb 8s ease-in-out infinite reverse;
+    }
+    .orb-3 {
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(26,138,82,0.10), transparent 70%);
+      bottom: 20%; left: 5%;
+      animation: pulse-orb 10s ease-in-out infinite;
+    }
+
+    /* Pre-title Arabic */
+    .pre-title {
+      font-family: 'Noto Naskh Arabic', serif;
+      font-size: clamp(15px, 2.5vw, 18px);
+      color: var(--gold); letter-spacing: 0.08em;
+      margin-bottom: 20px;
+      opacity: 0; animation: fadeUp 0.9s 0.3s ease both;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .pre-title::before, .pre-title::after {
+      content: ''; display: block; width: 40px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold));
+    }
+    .pre-title::after { background: linear-gradient(90deg, var(--gold), transparent); }
+
+    /* Main headline */
+    .headline {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(52px, 9vw, 110px);
+      font-weight: 700; line-height: 0.95;
+      letter-spacing: -0.02em; margin-bottom: 12px;
+      opacity: 0; animation: fadeUp 1s 0.45s ease both;
+    }
+    .headline .word-sama { color: var(--text); display: block; }
+    .headline .word-buy {
+      color: transparent;
+      -webkit-text-stroke: 1.5px var(--gold);
+      display: block;
+    }
+
+    .headline-arabic {
+      font-family: 'Noto Naskh Arabic', serif;
+      font-size: clamp(24px, 4vw, 48px);
+      color: var(--emerald2); font-weight: 600;
+      margin-bottom: 32px; letter-spacing: 0.04em;
+      opacity: 0; animation: fadeUp 1s 0.6s ease both;
+    }
+
+    /* Tagline */
+    .tagline {
+      font-size: clamp(14px, 2vw, 17px); font-weight: 400;
+      color: var(--muted); max-width: 520px; line-height: 1.7;
+      margin-bottom: 50px;
+      opacity: 0; animation: fadeUp 1s 0.75s ease both;
+    }
+    .tagline strong { color: var(--text); font-weight: 500; }
+
+    /* ── Sharia badges row ────────────────────────────────────── */
+    .badges {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+      margin-bottom: 56px;
+      opacity: 0; animation: fadeUp 1s 0.9s ease both;
+    }
+    .badge {
+      display: flex; align-items: center; gap: 7px;
+      padding: 8px 16px; border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--dim);
+      font-size: 12px; font-weight: 500; color: var(--muted);
+      transition: border-color 0.2s, color 0.2s;
+      backdrop-filter: blur(8px);
+    }
+    .badge:hover { border-color: rgba(201,168,76,0.4); color: var(--gold); }
+    .badge .b-icon { font-size: 14px; }
+
+    /* ── Waitlist form ────────────────────────────────────────── */
+    .waitlist-wrap {
+      width: 100%; max-width: 480px;
+      opacity: 0; animation: fadeUp 1s 1.05s ease both;
+    }
+    .waitlist-label {
+      font-size: 11px; font-weight: 600; color: var(--gold);
+      letter-spacing: 0.2em; text-transform: uppercase;
+      margin-bottom: 14px; display: block;
+    }
+    .waitlist-form {
+      display: flex; gap: 0;
+      background: rgba(14,26,19,0.9);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 16px; overflow: hidden;
+      backdrop-filter: blur(12px);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .waitlist-form:focus-within {
+      border-color: rgba(201,168,76,0.6);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.08), 0 0 40px rgba(26,138,82,0.15);
+    }
+    .waitlist-input {
+      flex: 1; background: none; border: none; outline: none;
+      padding: 16px 20px; color: var(--text);
+      font-family: 'Outfit', sans-serif; font-size: 14px;
+    }
+    .waitlist-input::placeholder { color: var(--muted); }
+    .waitlist-btn {
+      padding: 14px 24px; background: linear-gradient(135deg, var(--emerald), var(--emerald2) 60%, var(--gold));
+      border: none; color: #fff; font-family: 'Outfit', sans-serif;
+      font-size: 13px; font-weight: 600; cursor: none;
+      letter-spacing: 0.04em; transition: opacity 0.2s, transform 0.15s;
+      position: relative; overflow: hidden; white-space: nowrap;
+    }
+    .waitlist-btn:hover { opacity: 0.92; }
+    .waitlist-btn:active { transform: scale(0.98); }
+    .waitlist-btn::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+    }
+    .waitlist-note {
+      font-size: 11px; color: var(--muted); margin-top: 10px;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+
+    /* Success state */
+    .success-msg {
+      display: none; padding: 16px 24px;
+      background: rgba(26,138,82,0.12); border: 1px solid rgba(26,138,82,0.3);
+      border-radius: 16px; color: var(--emerald2);
+      font-size: 14px; font-weight: 500;
+      align-items: center; gap: 10px;
+    }
+    .success-msg.show { display: flex; animation: fadeUp 0.4s ease both; }
+
+    /* ── Countdown ────────────────────────────────────────────── */
+    .countdown-section {
+      padding: 60px 24px;
+      display: flex; flex-direction: column; align-items: center;
+      border-top: 1px solid var(--border);
+      opacity: 0; animation: fadeUp 1s 1.3s ease both;
+    }
+    .countdown-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 28px;
+    }
+    .countdown {
+      display: flex; gap: 32px; flex-wrap: wrap; justify-content: center;
+    }
+    .cd-unit { text-align: center; }
+    .cd-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(44px, 7vw, 72px); font-weight: 600;
+      color: var(--text); line-height: 1;
+      display: block; min-width: 80px;
+      background: linear-gradient(180deg, var(--text) 60%, var(--muted));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .cd-label { font-size: 10px; color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; margin-top: 6px; }
+    .cd-sep {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 60px; color: var(--border); line-height: 1;
+      padding-top: 4px; animation: blink 1.4s step-end infinite;
+    }
+
+    /* ── Features strip ───────────────────────────────────────── */
+    .features {
+      padding: 60px 48px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1px; border-top: 1px solid var(--border);
+      background: var(--border);
+    }
+    .feature {
+      background: var(--bg); padding: 40px 32px;
+      position: relative; overflow: hidden;
+      opacity: 0; animation: fadeUp 0.8s ease both;
+      transition: background 0.2s;
+    }
+    .feature:hover { background: var(--surface); }
+    .feature::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--emerald), transparent);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .feature:hover::before { opacity: 1; }
+    .feature-icon {
+      font-size: 28px; margin-bottom: 16px; display: block;
+      filter: drop-shadow(0 0 12px rgba(26,138,82,0.4));
+    }
+    .feature-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; font-weight: 600; color: var(--text);
+      margin-bottom: 8px;
+    }
+    .feature-desc {
+      font-size: 13px; color: var(--muted); line-height: 1.65;
+    }
+    .feature-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; color: var(--gold); margin-top: 14px;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+
+    /* ── Partners strip ───────────────────────────────────────── */
+    .partners {
+      padding: 40px 48px;
+      border-top: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; align-items: center;
+      justify-content: center; gap: 48px;
+      opacity: 0; animation: fadeUp 0.8s 0.2s ease both;
+    }
+    .partners-label {
+      font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); width: 100%; text-align: center; margin-bottom: 8px;
+    }
+    .partner-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 20px; border-radius: 100px;
+      border: 1px solid var(--border); background: var(--dim);
+      font-size: 13px; font-weight: 500; color: var(--muted);
+      backdrop-filter: blur(8px);
+    }
+    .partner-chip span { font-size: 16px; }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    footer {
+      padding: 28px 48px;
+      border-top: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; justify-content: space-between;
+      align-items: center; gap: 16px;
+    }
+    .footer-left { font-size: 12px; color: var(--muted); line-height: 1.7; }
+    .footer-left strong { color: var(--text); }
+    .footer-right {
+      display: flex; gap: 20px;
+    }
+    .social-link {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--dim); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .social-link:hover {
+      border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.06);
+    }
+
+    /* ── Floating crescent decoration ────────────────────────── */
+    .crescent {
+      position: fixed; pointer-events: none; z-index: 0;
+      opacity: 0.04; font-size: 300px; top: -40px; right: -60px;
+      animation: float-slow 12s ease-in-out infinite;
+      user-select: none;
+    }
+
+    /* ── Scroll progress bar ──────────────────────────────────── */
+    .progress-bar {
+      position: fixed; top: 0; left: 0; height: 2px; z-index: 999;
+      background: linear-gradient(90deg, var(--emerald), var(--gold));
+      width: 0%; transition: width 0.1s;
+    }
+
+    /* ── Animations ───────────────────────────────────────────── */
+    @keyframes fadeUp   { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes blink    { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes pulse-orb { 0%,100%{transform:translateX(-50%) scale(1)} 50%{transform:translateX(-50%) scale(1.12)} }
+    @keyframes float-slow { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-20px) rotate(5deg)} }
+    @keyframes shimmer { 0%{background-position:200%} 100%{background-position:-200%} }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      nav { padding: 20px 24px; }
+      .crescent { font-size: 180px; }
+      .features { padding: 40px 24px; }
+      .partners { padding: 32px 24px; gap: 20px; }
+      footer { padding: 24px; flex-direction: column; align-items: flex-start; }
+      .hero { padding: 60px 20px 40px; }
+      .waitlist-form { flex-direction: column; border-radius: 16px; }
+      .waitlist-btn { padding: 14px; border-radius: 0 0 14px 14px; }
+      .cd-sep { display: none; }
+    }
+
+    /* ── Particle canvas ──────────────────────────────────────── */
+    #particle-canvas {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.35;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div class="cursor" id="cursor"><div class="cursor-dot"></div></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- Progress bar -->
+<div class="progress-bar" id="progress-bar"></div>
+
+<!-- Background layers -->
+<div class="geo-overlay"></div>
+<div class="crescent">☪</div>
+<canvas id="particle-canvas"></canvas>
+
+<div class="wrapper">
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-logo">
+      <div class="logo-mark">س</div>
+      <div class="logo-text-block">
+        <span class="logo-name">SamaBuy</span>
+        <span class="logo-slogan">Trusted Sharia Station</span>
+      </div>
+    </a>
+    <div class="nav-badge"><span>☪️</span> Sharia Compliant</div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <p class="pre-title">سما باي — Coming Soon</p>
+
+    <h1 class="headline">
+      <span class="word-sama">Sama</span>
+      <span class="word-buy">Buy</span>
+    </h1>
+
+    <p class="headline-arabic">محطة الشريعة الموثوقة</p>
+
+    <p class="tagline">
+      The UAE's first <strong>Sharia-compliant crypto platform</strong> —
+      buy, sell, and transfer digital assets the halal way.
+      No riba. No gharar. No maysir. Just <strong>trusted transactions</strong>.
+    </p>
+
+    <div class="badges">
+      <div class="badge"><span class="b-icon">☪️</span> Sharia Screened</div>
+      <div class="badge"><span class="b-icon">📿</span> Zakat Calculator</div>
+      <div class="badge"><span class="b-icon">🌙</span> Powered by MoonPay</div>
+      <div class="badge"><span class="b-icon">🇦🇪</span> UAE Licensed</div>
+      <div class="badge"><span class="b-icon">⚡</span> Instant Settlement</div>
+      <div class="badge"><span class="b-icon">🔒</span> Non-Custodial</div>
+    </div>
+
+    <div class="waitlist-wrap">
+      <span class="waitlist-label">Join the waitlist — be first to launch</span>
+
+      <div class="waitlist-form" id="waitlist-form">
+        <input
+          type="email"
+          class="waitlist-input"
+          id="email-input"
+          placeholder="your@email.com"
+          autocomplete="email"
+        />
+        <button class="waitlist-btn" id="submit-btn" onclick="handleSubmit()">
+          Notify Me →
+        </button>
+      </div>
+
+      <div class="success-msg" id="success-msg">
+        <span>✓</span>
+        <span>You're on the list! We'll notify you at launch. بارك الله فيك</span>
+      </div>
+
+      <p class="waitlist-note">
+        <span>🔒</span> No spam. Unsubscribe anytime. Your data is safe.
+      </p>
+    </div>
+  </section>
+
+  <!-- COUNTDOWN -->
+  <div class="countdown-section">
+    <p class="countdown-label">Launching in</p>
+    <div class="countdown">
+      <div class="cd-unit">
+        <span class="cd-num" id="cd-days">00</span>
+        <div class="cd-label">Days</div>
+      </div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit">
+        <span class="cd-num" id="cd-hours">00</span>
+        <div class="cd-label">Hours</div>
+      </div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit">
+        <span class="cd-num" id="cd-mins">00</span>
+        <div class="cd-label">Minutes</div>
+      </div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit">
+        <span class="cd-num" id="cd-secs">00</span>
+        <div class="cd-label">Seconds</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="feature" style="animation-delay:0.1s">
+      <span class="feature-icon">☪️</span>
+      <div class="feature-title">Sharia Screened Assets</div>
+      <p class="feature-desc">Every listed cryptocurrency is reviewed by our Sharia Supervisory Board. Only halal assets reach your wallet.</p>
+      <span class="feature-tag">✦ Scholar Certified</span>
+    </div>
+    <div class="feature" style="animation-delay:0.2s">
+      <span class="feature-icon">⚡</span>
+      <div class="feature-title">Instant Buy & Sell</div>
+      <p class="feature-desc">Powered by MoonPay — buy Bitcoin, Ethereum, and more in seconds using your card or bank transfer in AED.</p>
+      <span class="feature-tag">✦ MoonPay Powered</span>
+    </div>
+    <div class="feature" style="animation-delay:0.3s">
+      <span class="feature-icon">📿</span>
+      <div class="feature-title">Zakat Calculator</div>
+      <p class="feature-desc">Automatically track and calculate your annual Zakat obligation on your crypto portfolio. Unique to SamaBuy.</p>
+      <span class="feature-tag">✦ Islamic Finance First</span>
+    </div>
+    <div class="feature" style="animation-delay:0.4s">
+      <span class="feature-icon">🔒</span>
+      <div class="feature-title">Your Keys, Your Crypto</div>
+      <p class="feature-desc">Non-custodial architecture. SamaBuy never holds your funds. Send and receive directly from your own wallet.</p>
+      <span class="feature-tag">✦ Non-Custodial</span>
+    </div>
+    <div class="feature" style="animation-delay:0.5s">
+      <span class="feature-icon">🇦🇪</span>
+      <div class="feature-title">UAE-First Experience</div>
+      <p class="feature-desc">Built for the UAE market. Full Arabic language support, AED payments, and Emirates ID verification.</p>
+      <span class="feature-tag">✦ Arabic Native</span>
+    </div>
+    <div class="feature" style="animation-delay:0.6s">
+      <span class="feature-icon">🌍</span>
+      <div class="feature-title">GCC & Beyond</div>
+      <p class="feature-desc">Designed for Muslims across the GCC — UAE, Saudi Arabia, Kuwait, Bahrain, Qatar, and Oman.</p>
+      <span class="feature-tag">✦ Regional Vision</span>
+    </div>
+  </section>
+
+  <!-- PARTNERS -->
+  <div class="partners">
+    <p class="partners-label">Powered by & Partnering with</p>
+    <div class="partner-chip"><span>🌙</span> MoonPay</div>
+    <div class="partner-chip"><span>🏢</span> RAK Innovation City</div>
+    <div class="partner-chip"><span>🇦🇪</span> UAE Central Bank AML</div>
+    <div class="partner-chip"><span>☪️</span> Sharia Advisory Board</div>
+    <div class="partner-chip"><span>🔐</span> Sumsub KYC</div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-left">
+      <strong>SamaBuy FZ-LLC — سما باي</strong><br/>
+      RAK Innovation City, Ras Al Khaimah, UAE<br/>
+      <span style="color:var(--gold)">samabuy.com</span> · hello@samabuy.com
+    </div>
+    <div class="footer-right">
+      <a href="https://instagram.com/samabuy" target="_blank" class="social-link" title="Instagram">📸</a>
+      <a href="https://x.com/samabuy" target="_blank" class="social-link" title="X / Twitter">𝕏</a>
+      <a href="https://linkedin.com/company/samabuy" target="_blank" class="social-link" title="LinkedIn">💼</a>
+      <a href="https://t.me/samabuy" target="_blank" class="social-link" title="Telegram">✈️</a>
+    </div>
+  </footer>
+
+</div><!-- /wrapper -->
+
+<script>
+/* ── Custom cursor ─────────────────────────────────────────────── */
+const cursor = document.getElementById('cursor');
+const ring   = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.transform = `translate(${mx}px, ${my}px)`;
+});
+(function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.transform = `translate(${rx}px, ${ry}px)`;
+  requestAnimationFrame(animRing);
+})();
+
+document.querySelectorAll('a, button, input').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    ring.style.width = '56px'; ring.style.height = '56px';
+    ring.style.opacity = '0.6';
+  });
+  el.addEventListener('mouseleave', () => {
+    ring.style.width = '36px'; ring.style.height = '36px';
+    ring.style.opacity = '1';
+  });
+});
+
+/* ── Scroll progress ───────────────────────────────────────────── */
+const bar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+  bar.style.width = pct + '%';
+});
+
+/* ── Countdown (90 days from today) ───────────────────────────── */
+const launch = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+function updateCountdown() {
+  const diff = launch - Date.now();
+  if (diff <= 0) return;
+  const d  = Math.floor(diff / 86400000);
+  const h  = Math.floor((diff % 86400000) / 3600000);
+  const m  = Math.floor((diff % 3600000)  / 60000);
+  const s  = Math.floor((diff % 60000)    / 1000);
+  document.getElementById('cd-days').textContent  = String(d).padStart(2,'0');
+  document.getElementById('cd-hours').textContent = String(h).padStart(2,'0');
+  document.getElementById('cd-mins').textContent  = String(m).padStart(2,'0');
+  document.getElementById('cd-secs').textContent  = String(s).padStart(2,'0');
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
+
+/* ── Waitlist form ─────────────────────────────────────────────── */
+function handleSubmit() {
+  const email = document.getElementById('email-input').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('email-input').style.borderBottom = '2px solid #E05252';
+    document.getElementById('email-input').focus();
+    return;
+  }
+  document.getElementById('waitlist-form').style.display = 'none';
+  document.getElementById('success-msg').classList.add('show');
+  // In production: POST to your backend or Mailchimp/Klaviyo API
+  console.log('Waitlist signup:', email);
+}
+document.getElementById('email-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleSubmit();
+});
+
+/* ── Intersection observer for feature animations ─────────────── */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = '1';
+      e.target.style.transform = 'translateY(0)';
+      e.target.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.feature, .partners, .countdown-section').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(20px)';
+  observer.observe(el);
+});
+
+/* ── Particle canvas (floating gold particles) ─────────────────── */
+const canvas  = document.getElementById('particle-canvas');
+const ctx     = canvas.getContext('2d');
+let particles = [];
+let W, H;
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+function Particle() {
+  this.reset = function() {
+    this.x  = Math.random() * W;
+    this.y  = Math.random() * H;
+    this.vx = (Math.random() - 0.5) * 0.3;
+    this.vy = -Math.random() * 0.4 - 0.1;
+    this.r  = Math.random() * 1.5 + 0.3;
+    this.life = 0;
+    this.maxLife = Math.random() * 300 + 200;
+    this.gold = Math.random() > 0.5;
+  };
+  this.reset();
+  this.y = Math.random() * H; // distribute on load
+}
+
+for (let i = 0; i < 60; i++) particles.push(new Particle());
+
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+  particles.forEach(p => {
+    p.life++;
+    if (p.life > p.maxLife) p.reset();
+    const alpha = Math.sin((p.life / p.maxLife) * Math.PI) * 0.6;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.gold
+      ? `rgba(201,168,76,${alpha})`
+      : `rgba(26,138,82,${alpha * 0.7})`;
+    ctx.fill();
+    p.x += p.vx;
+    p.y += p.vy;
+  });
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+</script>
+</body>
+</html>
